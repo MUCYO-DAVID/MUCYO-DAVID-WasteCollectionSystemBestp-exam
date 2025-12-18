@@ -1,0 +1,39 @@
+﻿@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Registration Successful";
+}
+
+<div class="auth-page">
+    <div class="auth-card text-center">
+        <div class="auth-icon">
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <h1 class="mb-3">Registration Successful!</h1>
+        
+        @if (Model.DisplayConfirmAccountLink)
+        {
+            <p class="text-muted mb-4">
+                Your account has been created. Please confirm your email address to activate your account.
+            </p>
+            <div class="alert alert-info text-start">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>Development mode: <a id="confirm-link" href="@Model.EmailConfirmationUrl" class="alert-link">Click here to confirm your account</a></small>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-4">
+                Please check your email to confirm your account. We've sent a confirmation link to your email address.
+            </p>
+            <div class="alert alert-success text-start">
+                <i class="fas fa-paper-plane me-2"></i>
+                Confirmation email sent!
+            </div>
+        }
+        
+        <a asp-page="./Login" class="btn btn-primary mt-3">
+            <i class="fas fa-sign-in-alt me-2"></i>Go to Sign In
+        </a>
+    </div>
+</div>

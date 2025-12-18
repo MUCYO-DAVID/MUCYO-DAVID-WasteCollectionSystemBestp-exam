@@ -1,0 +1,26 @@
+﻿@page
+@model LockoutModel
+@{
+    ViewData["Title"] = "Account Locked";
+}
+
+<div class="auth-page">
+    <div class="auth-card text-center">
+        <div class="auth-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h1 class="mb-3">Account Locked</h1>
+        <p class="text-muted mb-4">
+            This account has been temporarily locked due to too many failed login attempts. 
+            Please try again later or contact support for assistance.
+        </p>
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <a asp-page="/Index" asp-area="" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>Go Home
+            </a>
+            <a href="mailto:support@wastecollect.com" class="btn btn-outline-primary">
+                <i class="fas fa-headset me-2"></i>Contact Support
+            </a>
+        </div>
+    </div>
+</div>

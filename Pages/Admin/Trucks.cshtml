@@ -1,0 +1,243 @@
+@page
+@model WasteCollectionSystem.Pages.Admin.TrucksModel
+@{
+    Layout = "/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-truck text-success me-2"></i>
+            <h2 class="fw-bold m-0">Trucks</h2>
+        </div>
+        <div>
+            <button class="btn btn-success btn-lift" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fa-solid fa-plus me-2"></i>Add Truck</button>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
+    }
+
+    <form method="get" class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <div class="form-floating">
+                        <select class="form-select" name="Status" value="@Model.Status">
+                            <option value="">All statuses</option>
+                            <option value="Available" selected="@(Model.Status=="Available")">Available</option>
+                            <option value="Busy" selected="@(Model.Status=="Busy")">Busy</option>
+                            <option value="InTransit" selected="@(Model.Status=="InTransit")">In Transit</option>
+                            <option value="Maintenance" selected="@(Model.Status=="Maintenance")">Maintenance</option>
+                        </select>
+                        <label>Status</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-8">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="Search" value="@Model.Search" placeholder="Search by plate or driver" />
+                        <label>Search</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-success btn-lift" type="submit"><i class="fa-solid fa-filter me-2"></i>Apply filters</button>
+                <a class="btn btn-outline-secondary" href="/Admin/Trucks"><i class="fa-solid fa-rotate me-2"></i>Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Plate Number</th>
+                        <th>Driver Name</th>
+                        <th>Status</th>
+                        <th>Total Assignments</th>
+                        <th>Current Assignment</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Trucks.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4">No trucks found.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var t in Model.Trucks)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@t.PlateNumber</td>
+                                <td>@t.DriverName</td>
+                                <td><span class="@Model.GetStatusBadgeClass(t.Status)">@t.Status</span></td>
+                                <td>@t.TotalAssignments</td>
+                                <td>
+                                    @if (t.CurrentAssignment != null)
+                                    {
+                                        <span class="badge bg-info">Req #@t.CurrentAssignment.RequestID since @t.CurrentAssignment.AssignedDate.ToString("MM-dd HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-lift editBtn" data-id="@t.TruckID" data-plate="@t.PlateNumber" data-driver="@t.DriverName" data-driver-id="@t.DriverId"><i class="fa-solid fa-pen me-1"></i>Edit</button>
+                                    <form method="post" asp-page-handler="Delete" class="d-inline ms-2" onsubmit="return confirm('Delete this truck?')">
+                                        <input type="hidden" name="id" value="@t.TruckID" />
+                                        <button class="btn btn-sm btn-outline-danger btn-lift"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                                    </form>
+                                    <div class="btn-group ms-2">
+                                        <form method="post" asp-page-handler="Status" class="d-inline">
+                                            <input type="hidden" name="id" value="@t.TruckID" />
+                                            <input type="hidden" name="status" value="Available" />
+                                            <button class="btn btn-sm btn-success">Available</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Status" class="d-inline">
+                                            <input type="hidden" name="id" value="@t.TruckID" />
+                                            <input type="hidden" name="status" value="Busy" />
+                                            <button class="btn btn-sm btn-warning">Busy</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Status" class="d-inline">
+                                            <input type="hidden" name="id" value="@t.TruckID" />
+                                            <input type="hidden" name="status" value="InTransit" />
+                                            <button class="btn btn-sm btn-info">In Transit</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Status" class="d-inline">
+                                            <input type="hidden" name="id" value="@t.TruckID" />
+                                            <input type="hidden" name="status" value="Maintenance" />
+                                            <button class="btn btn-sm btn-secondary">Maintenance</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Add Truck</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form method="post" asp-page-handler="Add" id="addForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="addPlate" name="plateNumber" placeholder="ABC-123" />
+                            <label for="addPlate">Plate Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="addDriverUser" name="driverUserId">
+                                <option value="">Select driver (optional)</option>
+                                @foreach (var d in Model.Drivers)
+                                {
+                                    <option value="@d.Id">@d.FullName (@d.Email)</option>
+                                }
+                            </select>
+                            <label for="addDriverUser">Assign Driver (users with Driver role)</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="addDriverName" name="driverName" placeholder="Driver Name" />
+                            <label for="addDriverName">Driver Name (if not selecting user)</label>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="submit" class="btn btn-success btn-lift" id="addSubmit">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="addSpinner"></span>
+                                Save
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Edit Truck</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form method="post" asp-page-handler="Edit" id="editForm">
+                        <input type="hidden" name="id" id="editId" />
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="editPlate" name="plateNumber" />
+                            <label for="editPlate">Plate Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="editDriverUser" name="driverUserId">
+                                <option value="">Select driver (optional)</option>
+                                @foreach (var d in Model.Drivers)
+                                {
+                                    <option value="@d.Id">@d.FullName (@d.Email)</option>
+                                }
+                            </select>
+                            <label for="editDriverUser">Assign Driver (users with Driver role)</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="editDriverName" name="driverName" />
+                            <label for="editDriverName">Driver Name (if not selecting user)</label>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="submit" class="btn btn-success btn-lift" id="editSubmit">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="editSpinner"></span>
+                                Save
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const editBtns = document.querySelectorAll('.editBtn');
+            const editId = document.getElementById('editId');
+            const editPlate = document.getElementById('editPlate');
+            const editDriverUser = document.getElementById('editDriverUser');
+            const editDriverName = document.getElementById('editDriverName');
+            const editSpinner = document.getElementById('editSpinner');
+            const editSubmit = document.getElementById('editSubmit');
+            const editModalEl = document.getElementById('editModal');
+            const bsEdit = new bootstrap.Modal(editModalEl);
+            editBtns.forEach(b => b.addEventListener('click', function(){
+                editId.value = this.getAttribute('data-id');
+                editPlate.value = this.getAttribute('data-plate');
+                const dId = this.getAttribute('data-driver-id');
+                if(editDriverUser) editDriverUser.value = dId || "";
+                editDriverName.value = this.getAttribute('data-driver');
+                editSpinner.classList.add('d-none');
+                editSubmit.removeAttribute('disabled');
+                bsEdit.show();
+            }));
+            document.getElementById('editForm')?.addEventListener('submit', function(){ editSpinner.classList.remove('d-none'); editSubmit.setAttribute('disabled','disabled'); });
+            document.getElementById('addForm')?.addEventListener('submit', function(){ document.getElementById('addSpinner').classList.remove('d-none'); document.getElementById('addSubmit').setAttribute('disabled','disabled'); });
+        })();
+    </script>
+}
+
+<style>
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+</style>

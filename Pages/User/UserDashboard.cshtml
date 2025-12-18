@@ -1,0 +1,177 @@
+@page
+@model WasteCollectionSystem.Pages.User.DashboardModel
+@using WasteCollectionSystem.Models
+
+<div class="dashboard-hero mb-4">
+    <div class="container py-4">
+        <div class="d-flex align-items-center">
+            <div class="hero-icon me-3">
+                <i class="fa-solid fa-recycle"></i>
+            </div>
+            <div>
+                <h1 class="hero-title mb-1">Welcome, @((Model.CurrentUser?.FullName) ?? Model.CurrentUser?.DisplayName)</h1>
+                <p class="hero-subtitle mb-0">Keeping our city clean, one request at a time</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card stat-card card-lift h-100 position-relative">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-success-subtle text-success me-3">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Total Requests</div>
+                        <div class="stat-value" id="statTotal">@Model.TotalRequests</div>
+                    </div>
+                </div>
+                <a class="stretched-link" href="/User/History"></a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card stat-card card-lift h-100 position-relative">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-warning-subtle text-warning me-3">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="statPending">@Model.PendingCount</div>
+                    </div>
+                </div>
+                <a class="stretched-link" href="/User/History?Status=Pending"></a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card stat-card card-lift h-100 position-relative">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-info-subtle text-info me-3">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">In Progress</div>
+                        <div class="stat-value" id="statInProgress">@Model.InProgressCount</div>
+                    </div>
+                </div>
+                <a class="stretched-link" href="/User/History?Status=In%20Progress"></a>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card stat-card card-lift h-100 position-relative">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-success-subtle text-success me-3">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value" id="statCompleted">@Model.CompletedCount</div>
+                    </div>
+                </div>
+                <a class="stretched-link" href="/User/History?Status=Completed"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="/User/RequestWaste" class="btn btn-success btn-lift">
+            <i class="fa-solid fa-plus me-2"></i>New Waste Request
+        </a>
+        <a href="/User/Payments" class="btn btn-outline-success btn-lift">
+            <i class="fa-solid fa-credit-card me-2"></i>Make Payment
+        </a>
+        <a href="/User/History" class="btn btn-outline-secondary btn-lift">
+            <i class="fa-solid fa-list-ul me-2"></i>View History
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-0 d-flex align-items-center">
+            <i class="fa-solid fa-clock-rotate-left text-success me-2"></i>
+            <span class="fw-semibold">Recent Requests</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>Waste Type</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.RecentRequests.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="fa-regular fa-face-smile me-2"></i>No requests yet — create your first one!
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var r in Model.RecentRequests)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@r.RequestID</td>
+                            <td>@r.Location</td>
+                            <td>@r.WasteType</td>
+                            <td>@r.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <span class="@Model.GetStatusBadgeClass(r.Status)">@r.Status</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-hero {
+        background: radial-gradient(circle at 10% 10%, rgba(25,135,84,0.15) 0, rgba(25,135,84,0.05) 35%, transparent 36%) no-repeat,
+                    linear-gradient(135deg, #0f5132 0%, #198754 60%, #20c997 100%);
+        color: #fff;
+        border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        animation: fadeIn 600ms ease-out both;
+    }
+    .hero-icon i {
+        font-size: 2.25rem;
+    }
+    .hero-title { font-weight: 700; letter-spacing: 0.2px; }
+    .hero-subtitle { opacity: 0.9; }
+
+    .stat-card { border: 0; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    .stat-icon {
+        width: 48px; height: 48px; border-radius: 0.75rem;
+        display: inline-flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+    .stat-label { font-size: .875rem; color: #6c757d; }
+    .stat-value { font-size: 1.35rem; font-weight: 700; }
+
+    .card-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .card-lift:hover, .btn-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    }
+
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+
+    .bg-success-subtle { background-color: #e9f7ef; }
+    .bg-warning-subtle { background-color: #fff3cd; }
+    .bg-info-subtle    { background-color: #cff4fc; }
+    .bg-orange { background-color: #fd7e14; color: #fff; }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>

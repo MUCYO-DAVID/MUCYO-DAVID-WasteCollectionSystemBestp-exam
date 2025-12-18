@@ -1,0 +1,268 @@
+@page
+@model WasteCollectionSystem.Pages.ChatModel
+@{
+    ViewData["Title"] = "Chat Support";
+    Layout = "_Layout";
+}
+
+<style>
+    .chat-page-container {
+        min-height: calc(100vh - 200px);
+        padding: 2rem 0;
+    }
+    
+    .chat-page-card {
+        height: 85vh;
+        max-height: 800px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .chat-page-header {
+        background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-page-header h5 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .chat-page-body {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 80px);
+        background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
+    }
+    
+    .chat-page-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        scroll-behavior: smooth;
+    }
+    
+    .chat-page-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .chat-page-messages::-webkit-scrollbar-thumb {
+        background: rgba(44, 133, 88, 0.2);
+        border-radius: 10px;
+    }
+    
+    .chat-page-quick-actions {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .chat-page-input-area {
+        padding: 1.25rem 1.5rem;
+        background: white;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    
+    @@media (max-width: 768px) {
+        .chat-page-container {
+            padding: 1rem 0;
+        }
+        
+        .chat-page-card {
+            height: calc(100vh - 120px);
+            border-radius: 16px;
+        }
+        
+        .chat-page-header {
+            padding: 1.25rem 1.5rem;
+        }
+    }
+</style>
+
+<div class="chat-page-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="card chat-page-card">
+                    <div class="chat-page-header">
+                        <h5>
+                            <i class="fas fa-robot"></i>
+                            WasteBot Assistant
+                        </h5>
+                        <a asp-page="/SelectLanguage" class="btn btn-sm btn-light" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                            <i class="fas fa-language me-1"></i> Change Language
+                        </a>
+                    </div>
+                    <div class="chat-page-body">
+                        <div id="chat-history" class="chat-page-messages">
+                            <div class="message bot">
+                                <div class="message-content">
+                                    Hello! I'm WasteBot, your AI assistant. How can I help you today? 😊
+                                </div>
+                                <div class="message-time">Just now</div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-page-quick-actions">
+                            <small class="text-muted d-block mb-2" style="font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Quick Actions:</small>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="action-btn quick-action" data-query="How do I request waste collection?">
+                                    <i class="fas fa-trash-alt me-1"></i> Request Waste
+                                </button>
+                                <button class="action-btn quick-action" data-query="Can I pay with MTN MoMo?">
+                                    <i class="fas fa-credit-card me-1"></i> Payment
+                                </button>
+                                <button class="action-btn quick-action" data-query="How do I track the truck?">
+                                    <i class="fas fa-map-marker-alt me-1"></i> Track Truck
+                                </button>
+                                <button class="action-btn quick-action" data-query="How can I contact support?">
+                                    <i class="fas fa-headset me-1"></i> Support
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chat-page-input-area">
+                            <input type="text" id="user-input" class="form-control" placeholder="Type your message..." aria-label="Type your message" autocomplete="off" maxlength="500">
+                            <button class="btn btn-primary" type="button" id="send-btn" style="width: 48px; height: 48px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        let messageHistory = [];
+
+        function formatTime(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+
+        function appendMessage(text, isUser) {
+            if (!text || !text.trim()) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = formatTime(new Date());
+
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            chatHistory.appendChild(messageDiv);
+
+            // Animate message
+            requestAnimationFrame(() => {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translateY(10px)';
+                requestAnimationFrame(() => {
+                    messageDiv.style.transition = 'all 0.3s ease-out';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                });
+            });
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            requestAnimationFrame(() => {
+                chatHistory.scrollTo({
+                    top: chatHistory.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        async function sendMessage(query) {
+            if (!query || !query.trim()) return;
+
+            const userMessage = query.trim();
+            appendMessage(userMessage, true);
+            userInput.value = '';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator active';
+            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            chatHistory.appendChild(typingDiv);
+            scrollToBottom();
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+                
+                const response = await fetch(`/api/chatbot/ask?query=${encodeURIComponent(userMessage)}`);
+                
+                // Remove typing indicator
+                typingDiv.remove();
+                
+                if (response.ok) {
+                    const data = await response.text();
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    appendMessage(data || "I'm sorry, I didn't get a response. Please try again.", false);
+                } else {
+                    appendMessage("Sorry, I encountered an error. Please try again.", false);
+                }
+            } catch (error) {
+                console.error(error);
+                typingDiv.remove();
+                appendMessage("Sorry, I'm having trouble connecting right now. Please check your connection.", false);
+            } finally {
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+                scrollToBottom();
+            }
+        }
+
+        sendBtn.addEventListener('click', () => sendMessage(userInput.value.trim()));
+        
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(userInput.value.trim());
+            }
+        });
+
+        document.querySelectorAll('.quick-action').forEach(btn => {
+            btn.addEventListener('click', () => sendMessage(btn.dataset.query));
+        });
+
+        // Focus input on load
+        document.addEventListener('DOMContentLoaded', () => {
+            userInput.focus();
+        });
+    </script>
+}

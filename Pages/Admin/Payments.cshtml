@@ -1,0 +1,179 @@
+@page
+@model WasteCollectionSystem.Pages.Admin.PaymentsModel
+@{
+    Layout = "/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-credit-card text-success me-2"></i>
+            <h2 class="fw-bold m-0">Payments</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-success btn-lift" asp-page-handler="Export" asp-route-Status="@Model.Status" asp-route-From="@Model.From?.ToString("yyyy-MM-dd")" asp-route-To="@Model.To?.ToString("yyyy-MM-dd")" asp-route-User="@Model.User"><i class="fa-solid fa-file-csv me-2"></i>Export CSV</a>
+            <button class="btn btn-outline-secondary btn-lift" id="printBtn"><i class="fa-solid fa-file-pdf me-2"></i>Export PDF</button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-4">
+            <div class="card stat-card card-lift h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success-subtle text-success me-3"><i class="fa-solid fa-wallet"></i></div>
+                        <div>
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-value">$@Model.TotalRevenue.ToString("F2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 d-flex align-items-center">
+                    <i class="fa-solid fa-chart-column text-success me-2"></i>
+                    <span class="fw-semibold">Monthly Breakdown</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="payChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="get" class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" name="Status" value="@Model.Status">
+                            <option value="">All statuses</option>
+                            <option value="Paid" selected="@(Model.Status=="Paid")">Paid</option>
+                            <option value="Pending" selected="@(Model.Status=="Pending")">Pending</option>
+                            <option value="Failed" selected="@(Model.Status=="Failed")">Failed</option>
+                        </select>
+                        <label>Status</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="form-floating">
+                        <input type="date" class="form-control" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" />
+                        <label>From</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="form-floating">
+                        <input type="date" class="form-control" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" />
+                        <label>To</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="User" value="@Model.User" placeholder="User" />
+                        <label>User</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-2">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" name="PageSize" value="@Model.PageSize" min="5" max="100" />
+                        <label>Page Size</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-success btn-lift" type="submit"><i class="fa-solid fa-filter me-2"></i>Apply filters</button>
+                <a class="btn btn-outline-secondary" href="/Admin/Payments"><i class="fa-solid fa-rotate me-2"></i>Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="printTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Request</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4">No payments found.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var p in Model.Items)
+                        {
+                            var overdueClass = p.IsOverdue ? "table-danger" : "";
+                            <tr class="@overdueClass">
+                                <td class="fw-semibold">@p.UserName</td>
+                                <td>
+                                    <a href="/Admin/RequestDetails?id=@p.RequestID" class="text-decoration-none">#@p.RequestID</a>
+                                </td>
+                                <td>$@p.Amount.ToString("F2")</td>
+                                <td>@p.PaymentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td><span class="@Model.GetStatusBadgeClass(p.PaymentStatus)">@p.PaymentStatus</span></td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-secondary btn-lift" href="/Admin/RequestDetails?id=@p.RequestID"><i class="fa-solid fa-eye me-1"></i>Details</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted">Total: @Model.TotalCount</div>
+        <div class="btn-group">
+            @{ var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize); }
+            @for (var p = 1; p <= Math.Max(1, totalPages); p++)
+            {
+                var active = p == Model.Page ? "active" : "";
+                <a class="btn btn-outline-secondary @active" href="/Admin/Payments?Page=@p&PageSize=@Model.PageSize&Status=@Model.Status&From=@Model.From?.ToString("yyyy-MM-dd")&To=@Model.To?.ToString("yyyy-MM-dd")&User=@Model.User">@p</a>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (async function(){
+            const ctx = document.getElementById('payChart');
+            let chart;
+            async function load(){
+                const res = await fetch('/api/admin/payments-monthly', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const labels = data.map(d => d.month);
+                const values = data.map(d => d.total);
+                const ds = { label: 'Revenue', data: values, borderColor: '#1a5f3d', backgroundColor: 'rgba(26,95,61,0.15)' };
+                if (!chart) chart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [ds] }, options: { responsive: true, plugins: { legend: { display: false } } } });
+                else { chart.data.labels = labels; chart.data.datasets[0].data = values; chart.update(); }
+            }
+            await load();
+            setInterval(load, 30000);
+
+            document.getElementById('printBtn')?.addEventListener('click', function(){ window.print(); });
+        })();
+    </script>
+}
+
+<style>
+    .stat-card { border: 0; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    .stat-icon { width: 48px; height: 48px; border-radius: .75rem; display: inline-flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+    .stat-label { font-size: .875rem; color: #6c757d; }
+    .stat-value { font-size: 1.35rem; font-weight: 700; }
+    .card-lift, .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .card-lift:hover, .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,.08); }
+    .bg-success-subtle { background-color: #e9f7ef; }
+</style>

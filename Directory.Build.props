@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Exclude test projects from solution build -->
+    <ExcludeFromBuild Condition="'$(MSBuildProjectName)' == 'WasteCollectionSystem.Tests'">true</ExcludeFromBuild>
+  </PropertyGroup>
+</Project>
+

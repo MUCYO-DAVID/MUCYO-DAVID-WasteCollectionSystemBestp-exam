@@ -1,0 +1,403 @@
+﻿@page
+@using Microsoft.AspNetCore.Identity
+@using WasteCollectionSystem.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1 class="hero-title animate__animated animate__fadeInUp">
+                    GreenTrack – <br>
+                    <span class="text-gradient">Smart Waste Collection</span><br>
+                    for a Cleaner City
+                </h1>
+                <div class="hero-highlights animate__animated animate__fadeInUp animate__delay-1s">
+                    <span class="hero-highlight"><i class="fa-solid fa-bolt"></i>Request pickup in 60 seconds</span>
+                    <span class="hero-highlight"><i class="fa-solid fa-wallet"></i>Pay with MTN MoMo</span>
+                    <span class="hero-highlight"><i class="fa-solid fa-truck-fast"></i>Track arrival at your gate</span>
+                    <span class="hero-highlight"><i class="fa-solid fa-clock-rotate-left"></i>Access historical payments</span>
+                </div>
+                <p class="hero-subtitle animate__animated animate__fadeInUp animate__delay-1s">
+                    Join thousands of residents making our city cleaner, one pickup at a time.
+                </p>
+                <a asp-page="@(SignInManager.IsSignedIn(User) ? "/User/RequestWaste" : "/GuestRequest")" 
+                   class="btn btn-success btn-lg px-5 py-3 btn-lift animate__animated animate__pulse animate__infinite">
+                    Request Waste Collection Now
+                </a>
+                <p class="mt-3 text-white opacity-75">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <text>Continue as <strong>@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)</strong></text>
+                    }
+                    else
+                    {
+                        <text>No account? No problem — request in 30 seconds with just your phone</text>
+                    }
+                </p>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-illustration animate__animated animate__fadeInRight animate__delay-1s">
+                    <i class="fas fa-recycle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services Section -->
+<div class="services-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Services We Collect</h2>
+            <p class="section-subtitle">We handle all types of waste responsibly and efficiently</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Organic Waste -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #2c8558; background: rgba(44, 133, 88, 0.1);">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3 class="service-title">Organic Waste</h3>
+                    <p class="service-desc">Food scraps, garden waste, and biodegradable materials. Composted to enrich the soil.</p>
+                    <span class="service-badge">Daily Pickup</span>
+                </div>
+            </div>
+            
+            <!-- Plastic Waste -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
+                        <i class="fas fa-bottle-water"></i>
+                    </div>
+                    <h3 class="service-title">Plastic Waste</h3>
+                    <p class="service-desc">PET bottles, containers, and packaging. Sorted and recycled into new products.</p>
+                    <span class="service-badge">We Recycle Responsibly</span>
+                </div>
+            </div>
+            
+            <!-- Paper & Cardboard -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #64748b; background: rgba(100, 116, 139, 0.1);">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3 class="service-title">Paper & Cardboard</h3>
+                    <p class="service-desc">Newspapers, boxes, and office paper. Pulped and recycled for reuse.</p>
+                    <span class="service-badge">Eco-Friendly</span>
+                </div>
+            </div>
+            
+            <!-- Metal & Scrap -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #94a3b8; background: rgba(148, 163, 184, 0.1);">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="service-title">Metal & Scrap</h3>
+                    <p class="service-desc">Cans, appliances, and metal scraps. Melted down for industrial use.</p>
+                    <span class="service-badge">Heavy Duty</span>
+                </div>
+            </div>
+            
+            <!-- E-Waste -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.1);">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <h3 class="service-title">E-Waste & Electronics</h3>
+                    <p class="service-desc">Old computers, phones, and batteries. Safe disposal of hazardous materials.</p>
+                    <span class="service-badge">Special Handling</span>
+                </div>
+            </div>
+            
+            <!-- Mixed Waste -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon" style="color: #a16207; background: rgba(161, 98, 7, 0.1);">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3 class="service-title">Mixed Waste</h3>
+                    <p class="service-desc">General household waste that doesn't fit other categories. Disposed of safely.</p>
+                    <span class="service-badge">Standard Service</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="how-it-works-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Simple, fast, and transparent waste collection process</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon-wrapper">
+                        <i class="fas fa-mobile-screen-button"></i>
+                    </div>
+                    <h4>Submit Request</h4>
+                    <p class="text-muted">Choose your waste type, location, and preferred pickup time.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon-wrapper">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h4>Pay Instantly</h4>
+                    <p class="text-muted">Secure payment via MTN MoMo Sandbox integration.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon-wrapper">
+                        <i class="fas fa-truck-fast"></i>
+                    </div>
+                    <h4>Truck Assigned</h4>
+                    <p class="text-muted">A nearby truck is assigned. Track its location in real-time.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-icon-wrapper">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4>Waste Collected</h4>
+                    <p class="text-muted">Get a digital receipt and earn eco-points for recycling.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Features Section -->
+<div class="key-features-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5 mb-4 mb-lg-0">
+                <h2 class="section-title mb-4">Why GreenTrack is the Best Choice for You</h2>
+                <p class="lead text-muted mb-4">We combine technology with environmental responsibility to provide the most efficient waste management service in the city.</p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary btn-lg">Learn More About Us</a>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-map-location-dot"></i>
+                            </div>
+                            <div>
+                                <h5>GPS Live Tracking</h5>
+                                <p class="text-muted small mb-0">See exactly where your collection truck is.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div>
+                                <h5>Instant MoMo Payments</h5>
+                                <p class="text-muted small mb-0">Fast, secure, and cashless transactions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div>
+                                <h5>Real-time Notifications</h5>
+                                <p class="text-muted small mb-0">Get updates on your request status instantly.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h5>Admin Dashboards</h5>
+                                <p class="text-muted small mb-0">Comprehensive tools for fleet management.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <div>
+                                <h5>Eco-friendly Recycling</h5>
+                                <p class="text-muted small mb-0">We prioritize recycling and sustainability.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-grid-item">
+                            <div class="feature-grid-icon">
+                                <i class="fas fa-city"></i>
+                            </div>
+                            <div>
+                                <h5>Available Citywide</h5>
+                                <p class="text-muted small mb-0">Covering all major neighborhoods and districts.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Counter Section -->
+<div class="stats-counter-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="counter-value" data-target="1247">0</div>
+                <div class="counter-label">Requests Completed</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="counter-value" data-target="89">0</div>
+                <div class="counter-label">Tons Collected</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="counter-value" data-target="942">0</div>
+                <div class="counter-label">Happy Residents</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="counter-value" data-target="12">0</div>
+                <div class="counter-label">Trucks on Duty</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Footer -->
+<div class="cta-footer">
+    <div class="container">
+        <h2 class="cta-title">Ready to make your community cleaner?</h2>
+        <p class="lead mb-5 opacity-75">Join GreenTrack today and experience the future of waste management.</p>
+        
+        @if (SignInManager.IsSignedIn(User))
+        {
+             <a asp-page="/User/RequestWaste" class="btn btn-primary cta-btn">
+                Get Started – It's Free
+            </a>
+        }
+        else
+        {
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary cta-btn">
+                Get Started – It's Free
+            </a>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Stats Counter Animation
+        const counters = document.querySelectorAll('.counter-value');
+        const speed = 200; // The lower the slower
+
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 20);
+                    } else {
+                        counter.innerText = target + (target > 100 ? '+' : '');
+                    }
+                };
+                updateCount();
+            });
+        };
+
+        // Trigger animation when stats section is in view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.querySelector('.stats-counter-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+    </script>
+    
+    @if (TempData["CartToast"] != null)
+    {
+        <script>
+            // Show cart toast with action button
+            (function() {
+                const toastHtml = `
+                    <div class="toast align-items-center text-bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" id="cartToast" style="min-width: 350px;">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fa-solid fa-check-circle me-2 fa-lg"></i>
+                                    <strong>Request Submitted!</strong>
+                                </div>
+                                <p class="mb-2 small">Your waste collection request has been added to your cart.</p>
+                                <button class="btn btn-light btn-sm w-100" onclick="document.getElementById('cartIcon').click(); bootstrap.Toast.getInstance(document.getElementById('cartToast')).hide();">
+                                    <i class="fa-solid fa-shopping-cart me-1"></i> View Cart & Proceed to Payment
+                                </button>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                // Create toast container at top center if it doesn't exist
+                let toastContainer = document.querySelector('.toast-container-top');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.className = 'position-fixed top-0 start-50 translate-middle-x p-3 toast-container-top';
+                    toastContainer.style.zIndex = '9999';
+                    document.body.appendChild(toastContainer);
+                }
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                const toastElement = document.getElementById('cartToast');
+                const toast = new bootstrap.Toast(toastElement, { delay: 10000 });
+                toast.show();
+            })();
+        </script>
+    }
+}

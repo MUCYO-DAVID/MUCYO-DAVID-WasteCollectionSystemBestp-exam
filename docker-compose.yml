@@ -1,0 +1,37 @@
+services:
+  wastecollection:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wastecollection-app
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      # Database connection - update with your connection string
+      - ConnectionStrings__DefaultConnection=workstation id=greentrack.mssql.somee.com;packet size=4096;user id=greentrack;pwd=12345greentrack;data source=greentrack.mssql.somee.com;persist security info=False;initial catalog=greentrack;TrustServerCertificate=True
+      # SMTP settings - use environment variables or update here
+      - Smtp__Host=smtp.gmail.com
+      - Smtp__Port=587
+      - Smtp__User=${SMTP_USER:-your-email@gmail.com}
+      - Smtp__Pass=${SMTP_PASS:-your-app-password}
+      - Smtp__EnableSsl=true
+      # MTN MoMo settings
+      - MtnMomo__BaseUrl=https://sandbox.momodeveloper.mtn.com
+      - MtnMomo__SubscriptionKey=${MTN_SUBSCRIPTION_KEY:-your-key}
+      - MtnMomo__ApiUser=${MTN_API_USER:-your-api-user}
+      - MtnMomo__ApiKey=${MTN_API_KEY:-your-api-key}
+      - MtnMomo__TargetEnvironment=sandbox
+      # JWT settings
+      - JwtSettings__SecretKey=${JWT_SECRET:-ThisIsASecretKeyForDevelopmentOnly_ChangeThisInProduction!}
+      - JwtSettings__Issuer=WasteCollectionSystem
+      - JwtSettings__Audience=WasteCollectionSystemUsers
+    restart: unless-stopped
+    networks:
+      - wastecollection-network
+
+networks:
+  wastecollection-network:
+    driver: bridge
+

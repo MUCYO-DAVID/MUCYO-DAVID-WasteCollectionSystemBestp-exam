@@ -1,0 +1,201 @@
+@page
+@model WasteCollectionSystem.Pages.GuestRequestModel
+@{
+    ViewData["Title"] = "Guest Request";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-success"><i class="fa-solid fa-leaf me-2"></i>Quick Waste Collection</h2>
+                <p class="text-muted">No account needed. Just fill in the details below.</p>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-body p-4">
+                    <form method="post" id="guestForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Hidden inputs for coordinates -->
+                        <input type="hidden" asp-for="Input.Latitude" id="latInput" />
+                        <input type="hidden" asp-for="Input.Longitude" id="lngInput" />
+                        <input type="hidden" asp-for="Input.LocationName" id="locationNameInput" />
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.Name" class="form-control" placeholder="Your Name" />
+                                    <label asp-for="Input.Name">Your Name</label>
+                                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.Phone" class="form-control" placeholder="Phone Number" />
+                                    <label asp-for="Input.Phone">Phone Number</label>
+                                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Location" class="form-label">Location</label>
+                            <div class="input-group mb-2">
+                                <textarea class="form-control" id="addressInput" placeholder="e.g., 123 Green St, Block A" style="height: 80px" asp-for="Input.Location"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm mb-2" id="toggleMapBtn">
+                                <i class="fa-solid fa-map-location-dot me-1"></i> Pick location on map (optional)
+                            </button>
+                            
+                            <!-- Map Container -->
+                            <div id="mapContainer" class="d-none mb-3 rounded border" style="height: 300px; position: relative;">
+                                <div id="map" style="height: 100%; width: 100%; border-radius: var(--border-radius-sm);"></div>
+                                <div class="position-absolute top-0 start-0 p-2 w-100" style="z-index: 1000; pointer-events: none;">
+                                    <button type="button" class="btn btn-light btn-sm shadow-sm float-end" id="locateMeBtn" style="pointer-events: auto;">
+                                        <i class="fas fa-crosshairs text-primary"></i> Use my location
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="text-danger" asp-validation-for="Input.Location"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select class="form-select" asp-for="Input.WasteType">
+                                <option value="">Select type...</option>
+                                <option>Plastic</option>
+                                <option>Organic</option>
+                                <option>Paper</option>
+                                <option>Metal</option>
+                                <option>E-waste</option>
+                                <option>Mixed</option>
+                            </select>
+                            <label asp-for="Input.WasteType">Waste Type</label>
+                            <span class="text-danger" asp-validation-for="Input.WasteType"></span>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <textarea class="form-control" placeholder="Notes" style="height: 100px" asp-for="Input.Notes"></textarea>
+                            <label asp-for="Input.Notes">Notes (optional)</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg btn-lift" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="btnSpinner"></span>
+                                Submit Request
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a asp-page="/Index" class="text-muted text-decoration-none small">Cancel and go back home</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        (function () {
+            const form = document.getElementById('guestForm');
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+            
+            // Map elements
+            const toggleMapBtn = document.getElementById('toggleMapBtn');
+            const mapContainer = document.getElementById('mapContainer');
+            const addressInput = document.getElementById('addressInput');
+            const latInput = document.getElementById('latInput');
+            const lngInput = document.getElementById('lngInput');
+            const locationNameInput = document.getElementById('locationNameInput');
+            const locateMeBtn = document.getElementById('locateMeBtn');
+            
+            let map = null;
+            let marker = null;
+            
+            form?.addEventListener('submit', function () {
+                spinner.classList.remove('d-none');
+                btn.setAttribute('disabled', 'disabled');
+            });
+            
+            toggleMapBtn.addEventListener('click', function() {
+                if (mapContainer.classList.contains('d-none')) {
+                    mapContainer.classList.remove('d-none');
+                    toggleMapBtn.innerHTML = '<i class="fa-solid fa-map-location-dot me-1"></i> Hide map';
+                    initMap();
+                } else {
+                    mapContainer.classList.add('d-none');
+                    toggleMapBtn.innerHTML = '<i class="fa-solid fa-map-location-dot me-1"></i> Pick location on map (optional)';
+                }
+            });
+            
+            function initMap() {
+                if (map) return;
+                const defaultLat = -1.9441;
+                const defaultLng = 30.0619;
+                map = L.map('map').setView([defaultLat, defaultLng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+                
+                map.on('click', function(e) {
+                    setMarker(e.latlng.lat, e.latlng.lng);
+                    getAddressFromCoords(e.latlng.lat, e.latlng.lng);
+                });
+                
+                locateMeBtn.addEventListener('click', function() {
+                    locateMeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            map.setView([lat, lng], 16);
+                            setMarker(lat, lng);
+                            getAddressFromCoords(lat, lng);
+                            locateMeBtn.innerHTML = '<i class="fas fa-crosshairs text-primary"></i> Use my location';
+                        }, function() {
+                            alert("Could not get location.");
+                            locateMeBtn.innerHTML = '<i class="fas fa-crosshairs text-primary"></i> Use my location';
+                        });
+                    }
+                });
+            }
+            
+            function setMarker(lat, lng) {
+                if (marker) marker.setLatLng([lat, lng]);
+                else {
+                    const greenIcon = L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    });
+                    marker = L.marker([lat, lng], {icon: greenIcon}).addTo(map);
+                }
+                latInput.value = lat;
+                lngInput.value = lng;
+            }
+            
+            async function getAddressFromCoords(lat, lng) {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                    const data = await response.json();
+                    if (data && data.display_name) {
+                        addressInput.value = data.display_name;
+                        locationNameInput.value = data.display_name;
+                    }
+                } catch (e) { console.error(e); }
+            }
+        })();
+    </script>
+}
+<style>
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+</style>

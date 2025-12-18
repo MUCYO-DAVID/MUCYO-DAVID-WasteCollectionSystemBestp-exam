@@ -1,0 +1,237 @@
+@page
+@model WasteCollectionSystem.Pages.Admin.UsersModel
+@{
+    Layout = "/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-users text-success me-2"></i>
+            <h2 class="fw-bold m-0">Users</h2>
+        </div>
+        <div>
+            <button class="btn btn-success btn-lift" data-bs-toggle="modal" data-bs-target="#addModal"><i class="fa-solid fa-user-plus me-2"></i>Add Admin/Driver</button>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
+    }
+
+    <form method="get" class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" name="RoleFilter" value="@Model.RoleFilter">
+                            <option value="">All roles</option>
+                            <option value="Admin" selected="@(Model.RoleFilter=="Admin")">Admin</option>
+                            <option value="User" selected="@(Model.RoleFilter=="User")">User</option>
+                            <option value="Driver" selected="@(Model.RoleFilter=="Driver")">Driver</option>
+                        </select>
+                        <label>Role</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" name="StatusFilter" value="@Model.StatusFilter">
+                            <option value="">All statuses</option>
+                            <option value="Active" selected="@(Model.StatusFilter=="Active")">Active</option>
+                            <option value="Blocked" selected="@(Model.StatusFilter=="Blocked")">Blocked</option>
+                        </select>
+                        <label>Status</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="Search" value="@Model.Search" placeholder="Search name or email" />
+                        <label>Search</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-6 col-md-3">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" name="PageSize" value="@Model.PageSize" min="5" max="100" />
+                        <label>Page Size</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-9 d-flex align-items-center">
+                    <button class="btn btn-success btn-lift me-2" type="submit"><i class="fa-solid fa-filter me-2"></i>Apply</button>
+                    <a class="btn btn-outline-secondary" href="/Admin/Users"><i class="fa-solid fa-rotate me-2"></i>Reset</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <form method="post" id="bulkForm">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <button class="btn btn-outline-danger btn-lift" formaction="?handler=BulkBlock" formmethod="post"><i class="fa-solid fa-ban me-2"></i>Block selected</button>
+            <button class="btn btn-outline-secondary btn-lift" formaction="?handler=BulkDelete" formmethod="post" onclick="return confirm('Delete selected users?')"><i class="fa-solid fa-trash me-2"></i>Delete selected</button>
+            <div class="input-group" style="max-width: 380px;">
+                <select class="form-select" name="role">
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Driver">Driver</option>
+                </select>
+                <button class="btn btn-success btn-lift" formaction="?handler=BulkChangeRole" formmethod="post"><i class="fa-solid fa-user-gear me-2"></i>Change Role</button>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" /></th>
+                            <th></th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Join Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items.Count == 0)
+                        {
+                            <tr><td colspan="9" class="text-center text-muted py-4">No users found.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var u in Model.Items)
+                            {
+                                var initials = string.Join("", (u.FullName ?? "?").Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).Take(2).Select(x => x[0])).ToUpper();
+                                <tr>
+                                    <td><input type="checkbox" name="selected" value="@u.Id" /></td>
+                                    <td>
+                                        <div class="avatar">@initials</div>
+                                    </td>
+                                    <td class="fw-semibold">@u.FullName</td>
+                                    <td>@u.Email</td>
+                                    <td>@u.Phone</td>
+                                    <td>
+                                        <form method="post" asp-page-handler="UpdateRole" class="d-flex">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <select class="form-select form-select-sm me-2" name="role">
+                                                <option value="User" selected="@(u.Role=="User")">User</option>
+                                                <option value="Admin" selected="@(u.Role=="Admin")">Admin</option>
+                                                <option value="Driver" selected="@(u.Role=="Driver")">Driver</option>
+                                            </select>
+                                            <button class="btn btn-sm btn-success btn-lift" type="submit">Save</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <form method="post" asp-page-handler="UpdateStatus" class="d-flex">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <select class="form-select form-select-sm me-2" name="status">
+                                                <option value="Active" selected="@(u.Status=="Active")">Active</option>
+                                                <option value="Blocked" selected="@(u.Status=="Blocked")">Blocked</option>
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-secondary btn-lift" type="submit">Save</button>
+                                        </form>
+                                    </td>
+                                    <td>@u.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td class="text-end">
+                                        <form method="post" asp-page-handler="Impersonate" class="d-inline">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <button class="btn btn-sm btn-outline-success btn-lift"><i class="fa-solid fa-user-secret me-1"></i>Impersonate</button>
+                                        </form>
+                                        <a class="btn btn-sm btn-outline-secondary btn-lift ms-2" href="/Admin/Requests?User=@u.FullName"><i class="fa-solid fa-clipboard-list me-1"></i>History</a>
+                                        <form method="post" asp-page-handler="BulkDelete" class="d-inline ms-2" onsubmit="return confirm('Delete this user?')">
+                                            <input type="hidden" name="selected" value="@u.Id" />
+                                            <button class="btn btn-sm btn-outline-danger btn-lift"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted">Total: @Model.TotalCount</div>
+            <div class="btn-group">
+                @{ var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize); }
+                @for (var p = 1; p <= Math.Max(1, totalPages); p++)
+                {
+                    var active = p == Model.Page ? "active" : "";
+                    <a class="btn btn-outline-secondary @active" href="/Admin/Users?Page=@p&PageSize=@Model.PageSize&RoleFilter=@Model.RoleFilter&StatusFilter=@Model.StatusFilter&Search=@Model.Search">@p</a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Add Admin/Driver</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form method="post" asp-page-handler="Add" id="addForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="addFullName" name="fullName" placeholder="Full Name" />
+                            <label for="addFullName">Full Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="addEmail" name="email" placeholder="Email" />
+                            <label for="addEmail">Email</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="addPhone" name="phone" placeholder="Phone" />
+                            <label for="addPhone">Phone</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="addRole" name="role">
+                                <option value="Admin">Admin</option>
+                                <option value="Driver">Driver</option>
+                                <option value="User">User</option>
+                            </select>
+                            <label for="addRole">Role</label>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="submit" class="btn btn-success btn-lift" id="addSubmit">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="addSpinner"></span>
+                                Save
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const selectAll = document.getElementById('selectAll');
+            selectAll?.addEventListener('change', function () {
+                document.querySelectorAll('input[name="selected"]').forEach(cb => cb.checked = selectAll.checked);
+            });
+            document.getElementById('addForm')?.addEventListener('submit', function(){ document.getElementById('addSpinner').classList.remove('d-none'); document.getElementById('addSubmit').setAttribute('disabled','disabled'); });
+        })();
+    </script>
+}
+
+<style>
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #e9f7ef; color: #1a5f3d; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+</style>

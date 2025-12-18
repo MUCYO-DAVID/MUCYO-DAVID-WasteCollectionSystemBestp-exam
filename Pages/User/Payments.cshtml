@@ -1,0 +1,210 @@
+@page
+@model WasteCollectionSystem.Pages.User.PaymentsModel
+
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-credit-card text-success me-2"></i>
+            <h2 class="fw-bold m-0">Payments</h2>
+        </div>
+        <div class="text-muted">Secure demo flow</div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 d-flex align-items-center">
+            <i class="fa-solid fa-circle-exclamation text-warning me-2"></i>
+            <span class="fw-semibold">Unpaid Requests</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Waste Type</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.UnpaidRequests.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fa-regular fa-face-smile me-2"></i>No unpaid requests — great job!
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var r in Model.UnpaidRequests)
+                    {
+                        var amount = 25.00m;
+                        <tr class="table-warning">
+                            <td class="fw-semibold">#@r.RequestID</td>
+                            <td>@r.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@r.Location</td>
+                            <td>@r.WasteType</td>
+                            <td>$@amount.ToString("F2")</td>
+                            <td>
+                                <button class="btn btn-success btn-lift pay-btn" data-request-id="@r.RequestID" data-amount="@amount">
+                                    <i class="fa-solid fa-credit-card me-2"></i>Pay Now
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 d-flex align-items-center">
+            <i class="fa-solid fa-receipt text-success me-2"></i>
+            <span class="fw-semibold">Payment History</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Request</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.PaymentHistory.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No payments yet.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var p in Model.PaymentHistory)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@p.PaymentID</td>
+                            <td>#@p.RequestID</td>
+                            <td>@p.PaymentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>$@p.Amount.ToString("F2")</td>
+                            <td><span class="badge bg-success">@p.PaymentStatus</span></td>
+                            <td>
+                                <a class="btn btn-outline-secondary btn-sm" asp-page-handler="Receipt" asp-route-id="@p.PaymentID">
+                                    <i class="fa-solid fa-file-pdf me-1"></i>Receipt
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Pay Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="Pay" id="payForm">
+                    <input type="hidden" name="requestId" id="requestId" />
+                    <input type="hidden" name="amount" id="amount" />
+
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="cardNo" name="cardNo" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242" />
+                        <label for="cardNo">Card Number</label>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="expiry" name="expiry" placeholder="MM/YY" value="12/34" />
+                                <label for="expiry">Expiry</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="cvv" name="cvv" placeholder="CVV" value="123" />
+                                <label for="cvv">CVV</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <button type="submit" class="btn btn-success btn-lift" id="paySubmit">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="paySpinner" role="status" aria-hidden="true"></span>
+                            Pay $<span id="amountLabel">0.00</span>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const modalEl = document.getElementById('paymentModal');
+            const payBtns = document.querySelectorAll('.pay-btn');
+            const reqIdInput = document.getElementById('requestId');
+            const amountInput = document.getElementById('amount');
+            const amountLabel = document.getElementById('amountLabel');
+            const payForm = document.getElementById('payForm');
+            const spinner = document.getElementById('paySpinner');
+            const submitBtn = document.getElementById('paySubmit');
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            payBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const reqId = this.getAttribute('data-request-id');
+                    const amount = this.getAttribute('data-amount');
+                    reqIdInput.value = reqId;
+                    amountInput.value = amount;
+                    amountLabel.textContent = parseFloat(amount).toFixed(2);
+                    spinner.classList.add('d-none');
+                    submitBtn.removeAttribute('disabled');
+                    bsModal.show();
+                });
+            });
+
+            payForm.addEventListener('submit', function () {
+                spinner.classList.remove('d-none');
+                submitBtn.setAttribute('disabled', 'disabled');
+            });
+        })();
+    </script>
+}
+
+<style>
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+</style>
+

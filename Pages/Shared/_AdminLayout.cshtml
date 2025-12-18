@@ -1,0 +1,87 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using System.Globalization
+@inject SignInManager<WasteCollectionSystem.Models.ApplicationUser> SignInManager
+@inject UserManager<WasteCollectionSystem.Models.ApplicationUser> UserManager
+@{
+    var path = Context.Request.Path.ToString().ToLowerInvariant();
+    string Active(string startsWith) => path.StartsWith(startsWith.ToLowerInvariant()) ? "active" : "";
+    var currentLang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+}
+<!DOCTYPE html>
+<html lang="@currentLang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="d-flex">
+        <nav class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header d-flex align-items-center justify-content-between">
+                <a class="navbar-brand text-white d-flex align-items-center" href="/Admin/Dashboard">
+                    <i class="fa-solid fa-shield-halved me-2"></i>
+                    <span>Admin</span>
+                </a>
+                <button class="btn btn-sm btn-outline-light d-lg-none" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <ul class="nav flex-column mt-2">
+                <li class="nav-item"><a class="nav-link text-white @Active("/admin/dashboard")" href="/Admin/Dashboard"><i class="fa-solid fa-gauge-high me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link text-white @Active("/admin/requests")" href="/Admin/Requests"><i class="fa-solid fa-clipboard-list me-2"></i>Requests</a></li>
+                <li class="nav-item"><a class="nav-link text-white @Active("/admin/trucks")" href="/Admin/Trucks"><i class="fa-solid fa-truck me-2"></i>Trucks</a></li>
+                <li class="nav-item"><a class="nav-link text-white @Active("/admin/users")" href="/Admin/Users"><i class="fa-solid fa-users me-2"></i>Users</a></li>
+                <li class="nav-item"><a class="nav-link text-white @Active("/admin/payments")" href="/Admin/Payments"><i class="fa-solid fa-credit-card me-2"></i>Payments</a></li>
+                <li class="nav-item mt-2">
+                    <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" class="d-inline w-100">
+                        <button type="submit" class="btn btn-outline-light w-100"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="flex-grow-1">
+            <header class="admin-topbar d-flex align-items-center justify-content-between px-3">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-success d-lg-none me-2" id="sidebarToggle2"><i class="fa-solid fa-bars"></i></button>
+                    <h5 class="m-0 fw-bold">@ViewData["Title"]</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    @{
+                        var currentUser = await UserManager.GetUserAsync(User);
+                        var displayName = currentUser?.DisplayName ?? currentUser?.Email ?? User.Identity?.Name ?? "Admin";
+                    }
+                    <span class="text-muted small">@displayName</span>
+                </div>
+            </header>
+            <main role="main" class="p-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function(){
+            const sb = document.getElementById('adminSidebar');
+            const t1 = document.getElementById('sidebarToggle');
+            const t2 = document.getElementById('sidebarToggle2');
+            function toggle(){ sb.classList.toggle('show'); }
+            t1?.addEventListener('click', toggle);
+            t2?.addEventListener('click', toggle);
+        })();
+    </script>
+    @RenderSection("Scripts", required: false)
+    <style>
+        .admin-sidebar{ width:260px; background:#1a5f3d; min-height:100vh; position:sticky; top:0; left:0; padding:12px; }
+        .admin-sidebar .nav-link{ opacity:.95; border-radius:.5rem; padding:.55rem .75rem; }
+        .admin-sidebar .nav-link.active{ background:rgba(255,255,255,.15); }
+        .admin-sidebar .nav-link:hover{ background:rgba(255,255,255,.10); }
+        .admin-topbar{ height:56px; border-bottom:1px solid rgba(0,0,0,.08); background:#fff; position:sticky; top:0; z-index:100; }
+        @@media (max-width: 992px){ .admin-sidebar{ position:fixed; transform:translateX(-100%); transition:transform .2s ease; z-index:101; } .admin-sidebar.show{ transform:translateX(0); } }
+    </style>
+</body>
+</html>

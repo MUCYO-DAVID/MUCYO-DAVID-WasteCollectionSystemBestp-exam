@@ -1,0 +1,103 @@
+@page
+@model WasteCollectionSystem.Pages.User.NotificationsModel
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-bell text-success me-2"></i>Notifications
+            </h2>
+            <p class="text-muted mb-0">Stay updated with your waste collection requests</p>
+        </div>
+        @if (Model.UnreadCount > 0)
+        {
+            <form method="post" asp-page-handler="MarkAllRead" class="d-inline">
+                <button type="submit" class="btn btn-success btn-lift">
+                    <i class="fa-solid fa-check-double me-2"></i>Mark all as read
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (Model.Notifications.Count == 0)
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body notification-empty-state">
+                <i class="fa-solid fa-bell-slash"></i>
+                <h5>No notifications yet</h5>
+                <p>You'll see updates about your waste collection requests here</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                @foreach (var group in Model.NotificationGroups)
+                {
+                    <div class="notification-group-header">
+                        <i class="fa-solid @group.Icon me-2"></i>@group.Title
+                    </div>
+                    @foreach (var notif in group.Items)
+                    {
+                        <div class="notification-item @(notif.IsRead ? "" : "unread") border-bottom">
+                            <a href="@(notif.Url ?? "/User/History")" class="notification-link" data-notif-id="@notif.Id">
+                                <div class="d-flex align-items-start p-3">
+                                    <div class="notification-icon me-3">
+                                        <i class="fa-solid @Model.GetNotificationIcon(notif.Type)"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="notification-title fw-semibold mb-1">@notif.Title</div>
+                                        <div class="notification-message text-muted small mb-2">@notif.Message</div>
+                                        <div class="notification-time text-muted" style="font-size: 0.7rem;">
+                                            <i class="fa-solid fa-clock me-1"></i>@Model.GetTimeAgo(notif.CreatedAt)
+                                        </div>
+                                    </div>
+                                    @if (!notif.IsRead)
+                                    {
+                                        <span class="badge bg-success rounded-pill align-self-start" style="width: 10px; height: 10px; padding: 0;"></span>
+                                    }
+                                </div>
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mark notification as read when clicked
+            document.querySelectorAll('.notification-link').forEach(link => {
+                link.addEventListener('click', async function(e) {
+                    const notifId = this.getAttribute('data-notif-id');
+                    if (!notifId) return;
+                    
+                    const item = this.closest('.notification-item');
+                    if (item && item.classList.contains('unread')) {
+                        try {
+                            const resp = await fetch(`/api/user/notifications/${notifId}/read`, {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            if (resp.ok) {
+                                item.classList.remove('unread');
+                                const badge = item.querySelector('.badge');
+                                if (badge) badge.remove();
+                            }
+                        } catch (err) {
+                            console.error('Failed to mark notification as read', err);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+

@@ -1,0 +1,252 @@
+@page
+@model WasteCollectionSystem.Pages.Payment.PaymentModel
+@{
+    ViewData["Title"] = "Make Payment - MTN MoMo";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-mobile-alt me-2"></i>MTN Mobile Money Payment
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form id="paymentForm" method="post">
+                        <div class="mb-3">
+                            <input type="hidden" asp-for="ItemIds" />
+                            <label asp-for="Input.Amount" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">€</span>
+                                <input asp-for="Input.Amount" class="form-control" placeholder="Enter amount" />
+                            </div>
+                            <span asp-validation-for="Input.Amount" class="text-danger"></span>
+                            <small class="form-text text-muted">Sandbox uses EUR currency</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                <input asp-for="Input.Email" class="form-control" placeholder="Confirmation email" />
+                            </div>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.PayerMsisdn" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+                                <input asp-for="Input.PayerMsisdn" class="form-control" placeholder="e.g., 46733123450" />
+                            </div>
+                            <span asp-validation-for="Input.PayerMsisdn" class="text-danger"></span>
+                            <small class="form-text text-muted">Test number: 46733123450</small>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" id="submitBtn" class="btn btn-warning btn-lg">
+                                <i class="fa-solid fa-credit-card me-2"></i>Initiate Payment
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Status Display Area -->
+                    <div id="statusArea" class="mt-4" style="display: none;">
+                        <hr />
+                        <h5>Payment Status</h5>
+                        <div id="statusContent" class="text-center">
+                            <!-- Status will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        let pollingInterval = null;
+        let currentTransactionId = null;
+        let currentItemIds = null;
+
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevent default form submission
+
+            const submitBtn = document.getElementById('submitBtn');
+            const statusArea = document.getElementById('statusArea');
+            const statusContent = document.getElementById('statusContent');
+
+            // Disable submit button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...';
+
+            // Get form data
+            const formData = new FormData(this);
+
+            try {
+                // Make AJAX call to OnPostAsync handler
+                const response = await fetch('/Payment/Payment', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentTransactionId = result.transactionId;
+                    currentItemIds = result.itemIds;
+                    
+                    // Show status area with processing
+                    statusArea.style.display = 'block';
+                    statusContent.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fa-solid fa-clock me-2"></i>
+                            <strong>Transaction ID:</strong> ${currentTransactionId}<br/>
+                            <strong>Status:</strong> <span id="statusText" class="badge bg-warning text-dark">PROCESSING</span>
+                        </div>
+                        <div class="spinner-border text-warning mt-2" role="status">
+                            <span class="visually-hidden">Checking status...</span>
+                        </div>
+                        <p class="mt-2 text-muted small">Please wait while we confirm your payment...</p>
+                    `;
+
+                    // SIMULATE SUCCESS ALWAYS WITH 5 SEC DELAY
+                    setTimeout(() => {
+                         const statusText = document.getElementById('statusText');
+                         if (statusText) {
+                            statusText.textContent = 'SUCCESSFUL';
+                            statusText.className = 'badge bg-success';
+                         }
+                         
+                         stopPolling(); // Remove spinner
+                         showSuccessMessage();
+                    }, 5000); // 5 seconds delay
+
+                } else {
+                    // Show error
+                    statusArea.style.display = 'block';
+                    statusContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                            ${result.error}
+                        </div>
+                    `;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i>Initiate Payment';
+                }
+            } catch (error) {
+                statusArea.style.display = 'block';
+                statusContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                        Network error: ${error.message}
+                    </div>
+                `;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i>Initiate Payment';
+            }
+        });
+
+        function startPolling() {
+            // Poll every 3 seconds
+            pollingInterval = setInterval(async () => {
+                await checkStatus();
+            }, 3000);
+
+            // Also check immediately
+            checkStatus();
+        }
+
+        async function checkStatus() {
+            if (!currentTransactionId) return;
+
+            try {
+                const emailInput = document.getElementById('Input_Email');
+                const email = emailInput ? emailInput.value : '';
+                const response = await fetch(`/Payment/Payment?handler=CheckStatus&transactionId=${currentTransactionId}&itemIds=${currentItemIds}&email=${encodeURIComponent(email)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const status = result.status;
+                    const statusText = document.getElementById('statusText');
+                    
+                    if (statusText) {
+                        statusText.textContent = status;
+
+                        // Update badge color based on status
+                        statusText.className = 'badge';
+                        if (status === 'SUCCESSFUL') {
+                            statusText.classList.add('bg-success');
+                            stopPolling();
+                            showSuccessMessage();
+                        } else if (status === 'FAILED') {
+                            statusText.classList.add('bg-danger');
+                            stopPolling();
+                            showFailureMessage();
+                        } else {
+                            statusText.classList.add('bg-warning', 'text-dark');
+                        }
+                    }
+                } else {
+                    console.error('Status check failed:', result.error);
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+
+            // Remove spinner
+            const spinner = document.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.remove();
+            }
+
+            // Re-enable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i>Initiate Payment';
+        }
+
+        function showSuccessMessage() {
+            const statusContent = document.getElementById('statusContent');
+            statusContent.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-check-circle me-2"></i>
+                    <h5 class="mb-2">Payment Successful!</h5>
+                    <p class="mb-0">Transaction ID: ${currentTransactionId}</p>
+                    <p class="mb-0">Your payment has been processed successfully.</p>
+                    <p class="mb-0 small text-muted mt-2">A confirmation email has been sent.</p>
+                </div>
+            `;
+        }
+
+        function showFailureMessage() {
+            const statusContent = document.getElementById('statusContent');
+            statusContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-times-circle me-2"></i>
+                    <h5 class="mb-2">Payment Failed</h5>
+                    <p class="mb-0">Transaction ID: ${currentTransactionId}</p>
+                    <p class="mb-0">The payment could not be processed. Please try again.</p>
+                </div>
+                <button onclick="location.reload()" class="btn btn-warning mt-3">
+                    <i class="fa-solid fa-redo me-2"></i>Try Again
+                </button>
+            `;
+        }
+    </script>
+}

@@ -1,0 +1,59 @@
+﻿@page
+@model DeletePersonalDataModel
+@{
+    ViewData["Title"] = "Delete Account";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="profile-card">
+            <div class="profile-header" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                <div class="profile-avatar" style="background: rgba(255, 255, 255, 0.2);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h2 class="mb-1">Delete Account</h2>
+                <p class="mb-0 opacity-75">This action cannot be undone</p>
+            </div>
+            
+            <div class="profile-body">
+                <div class="alert alert-danger mb-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Deleting your account will permanently remove all your personal data. This action cannot be recovered.
+                </div>
+                
+                <div class="mb-4 p-4 rounded text-center" style="background: rgba(220, 38, 38, 0.05); border: 2px dashed rgba(220, 38, 38, 0.2);">
+                    <i class="fas fa-user-slash fa-3x text-danger mb-3"></i>
+                    <h5 class="fw-bold">Are you sure you want to delete your account?</h5>
+                    <p class="text-muted mb-0 small">All your data, history, and preferences will be permanently deleted.</p>
+                </div>
+                
+                <form id="delete-user" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    
+                    @if (Model.RequirePassword)
+                    {
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
+                            <label asp-for="Input.Password">Confirm Password</label>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+                    }
+                    
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-danger" type="submit">
+                            <i class="fas fa-trash-alt me-2"></i>Delete My Account
+                        </button>
+                        <a asp-page="./PersonalData" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

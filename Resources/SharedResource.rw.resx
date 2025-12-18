@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Home" xml:space="preserve">
+    <value>Ahabanza</value>
+  </data>
+  <data name="Privacy" xml:space="preserve">
+    <value>Ibanga</value>
+  </data>
+  <data name="Terms" xml:space="preserve">
+    <value>Amategeko</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Ubutumwa</value>
+  </data>
+  <data name="MarkAllRead" xml:space="preserve">
+    <value>Byose wasomye</value>
+  </data>
+  <data name="ViewAllNotifications" xml:space="preserve">
+    <value>Reba ubutumwa bwose</value>
+  </data>
+  <data name="MyCartTitle" xml:space="preserve">
+    <value>Igare ryanjye</value>
+  </data>
+  <data name="LoadingCart" xml:space="preserve">
+    <value>Turi gupakira igare...</value>
+  </data>
+  <data name="YourCartIsEmpty" xml:space="preserve">
+    <value>Igare ritarimo ibintu</value>
+  </data>
+  <data name="FailedToLoadCart" xml:space="preserve">
+    <value>Kunanirwa gupakira igare</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Igiteranyo:</value>
+  </data>
+  <data name="ProceedToPayment" xml:space="preserve">
+    <value>Komeza kwishyura</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Ubuyobozi</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Ibibaho</value>
+  </data>
+  <data name="Requests" xml:space="preserve">
+    <value>Ibibazo</value>
+  </data>
+  <data name="Trucks" xml:space="preserve">
+    <value>Amakamyo</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Abakoresha</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Kwishyura</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Sohoka</value>
+  </data>
+  <data name="FAQ_RequestWaste" xml:space="preserve">
+    <value>Tanga ubusabe bwawe ukoresheje porogaramu, hitamo ubwoko bw'imyanda, aho uri, n'igihe cyo kuyitwara.</value>
+  </data>
+  <data name="FAQ_Payment" xml:space="preserve">
+    <value>Yego, kwishyura bikorwa binyuze muri MTN MoMo Sandbox mu buryo bwizewe.</value>
+  </data>
+  <data name="FAQ_TrackTruck" xml:space="preserve">
+    <value>Ushobora gukurikirana ikamyo yawe ukanze ahabugenewe ukoresheje GPS.</value>
+  </data>
+  <data name="FAQ_Support" xml:space="preserve">
+    <value>Itsinda ryacu ryo gufasha riboneka amasaha 24/7. Hamagara +250787942500 cyangwa wandikire support@greentrack.rw.</value>
+  </data>
+</root>
+
+

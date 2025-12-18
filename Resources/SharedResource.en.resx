@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Privacy" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Terms" xml:space="preserve">
+    <value>Terms</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="MarkAllRead" xml:space="preserve">
+    <value>Mark all read</value>
+  </data>
+  <data name="ViewAllNotifications" xml:space="preserve">
+    <value>View all notifications</value>
+  </data>
+  <data name="MyCartTitle" xml:space="preserve">
+    <value>My Cart</value>
+  </data>
+  <data name="LoadingCart" xml:space="preserve">
+    <value>Loading cart...</value>
+  </data>
+  <data name="YourCartIsEmpty" xml:space="preserve">
+    <value>Your cart is empty</value>
+  </data>
+  <data name="FailedToLoadCart" xml:space="preserve">
+    <value>Failed to load cart</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total:</value>
+  </data>
+  <data name="ProceedToPayment" xml:space="preserve">
+    <value>Proceed to Payment</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Requests" xml:space="preserve">
+    <value>Requests</value>
+  </data>
+  <data name="Trucks" xml:space="preserve">
+    <value>Trucks</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Payments</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="FAQ_RequestWaste" xml:space="preserve">
+    <value>Submit a request via the app, choose waste type, location, and pickup time.</value>
+  </data>
+  <data name="FAQ_Payment" xml:space="preserve">
+    <value>Yes, payments are integrated with MTN MoMo Sandbox for secure transactions.</value>
+  </data>
+  <data name="FAQ_TrackTruck" xml:space="preserve">
+    <value>You can track your assigned truck in real-time using GPS live tracking.</value>
+  </data>
+  <data name="FAQ_Support" xml:space="preserve">
+    <value>Our support team is available 24/7. Call +250787942500 or email support@greentrack.rw.</value>
+  </data>
+</root>
+
+

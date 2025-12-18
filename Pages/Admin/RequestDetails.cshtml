@@ -1,0 +1,251 @@
+@page
+@model WasteCollectionSystem.Pages.Admin.RequestDetailsModel
+@{
+    Layout = "/Pages/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-id-card text-success me-2"></i>
+            <h2 class="fw-bold m-0">Request #@Model.CurrentRequest.RequestID</h2>
+        </div>
+        <div>
+            <span class="badge @Model.GetStatusBadgeClass(Model.CurrentRequest.Status)">@Model.CurrentRequest.Status</span>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <div>@TempData["ErrorMessage"]</div>
+        </div>
+    }
+
+    <ul class="nav nav-tabs" id="detailsTabs" role="tablist">
+        <li class="nav-item" role="presentation"><button class="nav-link active" id="tab-details" data-bs-toggle="tab" data-bs-target="#pane-details" type="button" role="tab">Details</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="tab-timeline" data-bs-toggle="tab" data-bs-target="#pane-timeline" type="button" role="tab">Timeline</button></li>
+        <li class="nav-item" role="presentation"><button class="nav-link" id="tab-payment" data-bs-toggle="tab" data-bs-target="#pane-payment" type="button" role="tab">Payment</button></li>
+    </ul>
+    <div class="tab-content" id="detailsTabsContent">
+        <div class="tab-pane fade show active p-3" id="pane-details" role="tabpanel">
+            <div class="row g-3">
+                <div class="col-12 col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">User</div>
+                                    @if (Model.CurrentUser != null)
+                                    {
+                                        <div class="fw-semibold">@Model.CurrentUser.FullName (@Model.CurrentUser.Email)</div>
+                                        @if (!string.IsNullOrEmpty(Model.CurrentUser.GetPhoneNumber()))
+                                        {
+                                            <div class="small text-muted mt-1">Phone: @Model.CurrentUser.GetPhoneNumber()</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="fw-semibold">@Model.CurrentRequest.GuestName <span class="badge bg-info">Guest</span></div>
+                                        @if (!string.IsNullOrEmpty(Model.CurrentRequest.GuestPhone))
+                                        {
+                                            <div class="small text-muted mt-1">Phone: @Model.CurrentRequest.GuestPhone</div>
+                                        }
+                                    }
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">Date</div>
+                                    <div class="fw-semibold">@Model.CurrentRequest.RequestDate.ToString("yyyy-MM-dd HH:mm")</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">Location</div>
+                                    <div class="fw-semibold">@Model.CurrentRequest.Location</div>
+                                    @if (Model.CurrentRequest.Latitude.HasValue && Model.CurrentRequest.Longitude.HasValue)
+                                    {
+                                        <div class="mt-2">
+                                            <div id="adminMap" style="height: 200px; width: 100%; border-radius: 8px;" class="mb-2 border"></div>
+                                            <a href="https://www.google.com/maps/search/?api=1&query=@Model.CurrentRequest.Latitude,@Model.CurrentRequest.Longitude" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                                <i class="fa-solid fa-map-location-dot me-1"></i>Open in Google Maps
+                                            </a>
+                                        </div>
+                                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+                                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                var lat = @Model.CurrentRequest.Latitude;
+                                                var lng = @Model.CurrentRequest.Longitude;
+                                                var map = L.map('adminMap').setView([lat, lng], 15);
+                                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                    attribution: '&copy; OpenStreetMap contributors'
+                                                }).addTo(map);
+                                                L.marker([lat, lng]).addTo(map);
+                                            });
+                                        </script>
+                                    }
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">Waste Type</div>
+                                    <div class="fw-semibold">@Model.CurrentRequest.WasteType</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">Preferred</div>
+                                    <div class="fw-semibold">@Model.CurrentRequest.PreferredCollectionDateTime?.ToString("yyyy-MM-dd HH:mm")</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="small text-muted">Notes</div>
+                                    <div class="fw-semibold">@Model.CurrentRequest.Notes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            @if (!string.IsNullOrEmpty(Model.CurrentRequest.PhotoPath))
+                            {
+                                <img src="@Model.CurrentRequest.PhotoPath" alt="Photo" class="img-fluid rounded border" />
+                            }
+                            else
+                            {
+                                <div class="text-muted">No photo uploaded</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <form method="post" asp-page-handler="Assign" class="row g-3 align-items-end">
+                        <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" name="truckId">
+                                    @foreach (var t in Model.Trucks)
+                                    {
+                                        <option value="@t.TruckID">@t.PlateNumber (@t.DriverName)</option>
+                                    }
+                                </select>
+                                <label>Assign Truck</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <button class="btn btn-success btn-lift" type="submit"><i class="fa-solid fa-truck me-2"></i>Assign</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="Pending" />
+                    <button class="btn btn-outline-secondary btn-lift" type="submit">Pending</button>
+                </form>
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="Approved" />
+                    <button class="btn btn-outline-success btn-lift" type="submit">Approved</button>
+                </form>
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="Assigned" />
+                    <button class="btn btn-outline-success btn-lift" type="submit">Assigned</button>
+                </form>
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="In Transit" />
+                    <button class="btn btn-outline-info btn-lift" type="submit">In Transit</button>
+                </form>
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="Collected" />
+                    <button class="btn btn-outline-success btn-lift" type="submit">Collected</button>
+                </form>
+                <form method="post" asp-page-handler="Status" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.CurrentRequest.RequestID" />
+                    <input type="hidden" name="status" value="Completed" />
+                    <button class="btn btn-success btn-lift" type="submit">Completed</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="tab-pane fade p-3" id="pane-timeline" role="tabpanel">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-point bg-success"></div>
+                    <div>
+                        <div class="fw-semibold">Requested</div>
+                        <div class="text-muted small">@Model.CurrentRequest.RequestDate.ToString("yyyy-MM-dd HH:mm")</div>
+                    </div>
+                </div>
+                @if (Model.LatestAssignment != null)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-point bg-info"></div>
+                        <div>
+                            <div class="fw-semibold">Assigned</div>
+                            <div class="text-muted small">@Model.LatestAssignment.AssignedDate.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+                }
+                @if (Model.LatestAssignment?.CompletionDate != null)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-point bg-success"></div>
+                        <div>
+                            <div class="fw-semibold">Collected</div>
+                            <div class="text-muted small">@Model.LatestAssignment.CompletionDate?.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade p-3" id="pane-payment" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                        @if (Model.Payments.Count == 0)
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-4">No payments</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var p in Model.Payments)
+                            {
+                                <tr>
+                                    <td>#@p.PaymentID</td>
+                                    <td>@p.PaymentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>$@p.Amount.ToString("F2")</td>
+                                    <td><span class="badge bg-success">@p.PaymentStatus</span></td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline { display: grid; gap: .75rem; }
+    .timeline-item { display: grid; grid-template-columns: 16px 1fr; gap: .5rem; align-items: start; }
+    .timeline-point { width: 12px; height: 12px; border-radius: 50%; margin-top: .35rem; }
+    .btn-lift { transition: transform .2s ease, box-shadow .2s ease; }
+    .btn-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+    .bg-orange { background-color: #fd7e14; color: #fff; }
+</style>
